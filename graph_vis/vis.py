@@ -15,6 +15,8 @@ edges_group = []
 
 graph = {}
 
+id_list = [0]
+
 
 def terminate():
     pygame.quit()
@@ -26,7 +28,7 @@ class Node(pygame.sprite.Sprite):
         super().__init__()
         self.r = r
         self.color = color
-        self.connects = []
+        self.id = give_new_id()
         self.image = pygame.Surface((r * 2, r * 2), pygame.SRCALPHA)
         pygame.draw.circle(self.image, color, (self.r, self.r), self.r)
         self.rect = self.image.get_rect()
@@ -42,6 +44,21 @@ class Node(pygame.sprite.Sprite):
 
     def check_click(self, mouse_pos):
         return self.rect.collidepoint(*mouse_pos)
+
+    def __eq__(self, other):
+        if not isinstance(other, Node):
+            return False
+        return self.id == other.id
+
+    def __hash__(self):
+        return self.id
+
+
+def give_new_id():
+    new_id = rn.randrange(1, 10000)
+    while new_id in id_list:
+        new_id = rn.randrange(1, 10000)
+    return new_id
 
 
 class Edge:
@@ -74,17 +91,17 @@ def generate_random_graph(num, edge_part):
         n1, n2 = tuple(rn.choices(nodes, k=2))
         while n2 in graph[n1]:
             n1, n2 = tuple(rn.choices(nodes, k=2))
-        edges_group.append(Edge(n1, n2))
-        graph[n1].append(n2)
-        graph[n2].append(n1)
+        connect(n1, n2)
 
 
 def kill_all():
     global edges_group
     global graph
+    global id_list
     nodes_group.empty()
     edges_group = []
     graph = {}
+    id_list = []
 
 
 def connect(n1, n2):
